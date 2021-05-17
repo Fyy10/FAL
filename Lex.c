@@ -8,17 +8,26 @@
 
 char token[MAX_LEN + 1];
 int len_token = 0;
-int line = 0;
+int line = 1;
+char c;
 int used = 1;
 
-char get_char(char c) {
-    if (used) c = getchar();
-    used = 0;
+char get_char() {
+    // use global variable
+    c = c;
+    if (used) {
+        c = getchar();
+        used = 0;
+    }
     return c;
 }
 
 int concat(char ch) {
-    if (len_token == MAX_LEN) return 1;
+    if (len_token == MAX_LEN) {
+        fprintf(stderr, "***Line:%d variable length exceeded\n", line);
+        used = 1;
+        return 1;
+    }
     token[len_token++] = ch;
     token[len_token] = '\0';
     used = 1;
@@ -43,6 +52,7 @@ int number() {
 }
 
 // check token id in the reserved words
+// if not reserved, return 0
 int reserve() {
     char* reserved[] = {
             "\0",
@@ -71,6 +81,7 @@ int accept() {
     }
     fprintf(stdout, "%*s %2d\n", MAX_LEN, token, type);
     len_token = 0;
+    token[0] = '\0';
     return 0;
 }
 
@@ -82,13 +93,15 @@ int main() {
     // process a word during a loop
     // the entry is state 0 (always)
     while (1) {
-        c = get_char(c);
+        c = get_char();
         if (c == EOF) break;
 
         s0:
-        if (c == ' ' || c == '\t') continue;
+        if (c == ' ' || c == '\t') {
+            used = 1;
+            continue;
+        }
         else if (letter(c)) {
-            // todo: check error
             concat(c);
             goto s1;
         }
@@ -110,32 +123,24 @@ int main() {
         }
 
         s1:
-        c = get_char(c);
-        if (c == EOF) break;
+        c = get_char();
         if (letter(c) || digit(c)) {
             concat(c);
             goto s1;
         }
-        else {
-            concat(c);
-            goto s2;
-        }
+        else goto s2;
 
         s2:
         accept();
         continue;
 
         s3:
-        c = get_char(c);
-        if (c == EOF) break;
+        c = get_char();
         if (digit(c)) {
             concat(c);
             goto s3;
         }
-        else {
-            concat(c);
-            goto s4;
-        }
+        else goto s4;
 
         s4:
         accept();
@@ -162,8 +167,7 @@ int main() {
         continue;
 
         s10:
-        c = get_char(c);
-        if (c == EOF) break;
+        c = get_char();
         if (c == '=') {
             concat(c);
             goto s11;
@@ -187,8 +191,7 @@ int main() {
         continue;
 
         s14:
-        c = get_char(c);
-        if (c == EOF) break;
+        c = get_char();
         if (c == '=') {
             concat(c);
             goto s15;
@@ -204,8 +207,7 @@ int main() {
         continue;
 
         s17:
-        c = get_char(c);
-        if (c == EOF) break;
+        c = get_char();
         if (c == '=') {
             concat(c);
             goto s18;
@@ -226,10 +228,14 @@ int main() {
 
         s21:
         if (c == '\n') {
-            line++;
             fprintf(stdout, "%16s %2d\n", "EOLN", 24);
+            line++;
+            used = 1;
         }
-        else fprintf(stderr, "***Line:%d  invalid symbol %c\n", line, c);
+        else {
+            fprintf(stderr, "***Line:%d  invalid symbol %c\n", line, c);
+            used = 1;
+        }
     }
     fprintf(stdout, "%*s %2d\n", MAX_LEN, "EOF", 25);
     fclose(stdin);
