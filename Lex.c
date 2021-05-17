@@ -3,9 +3,11 @@
 //
 #include "stdio.h"
 #include "string.h"
+#include "malloc.h"
 
 #define MAX_LEN 16
 
+// plus an ending character '\0'
 char token[MAX_LEN + 1];
 int len_token = 0;
 int line = 1;
@@ -13,8 +15,6 @@ char c;
 int used = 1;
 
 char get_char() {
-    // use global variable
-    c = c;
     if (used) {
         c = getchar();
         used = 0;
@@ -22,9 +22,14 @@ char get_char() {
     return c;
 }
 
+int exceeded = 0;
 int concat(char ch) {
     if (len_token == MAX_LEN) {
-        fprintf(stderr, "***Line:%d variable length exceeded\n", line);
+        // report exceed error only once
+        if (!exceeded) {
+            exceeded = 1;
+            fprintf(stderr, "***Line:%d  Variable \"%s~\" length exceeded\n", line, token);
+        }
         used = 1;
         return 1;
     }
@@ -52,7 +57,7 @@ int number() {
 }
 
 // check token id in the reserved words
-// if not reserved, return 0
+// if token is not a reserved word, return 0
 int reserve() {
     char* reserved[] = {
             "\0",
@@ -82,14 +87,32 @@ int accept() {
     fprintf(stdout, "%*s %2d\n", MAX_LEN, token, type);
     len_token = 0;
     token[0] = '\0';
+    exceeded = 0;
     return 0;
 }
 
-int main() {
-    freopen("source.pas", "r", stdin);
-    freopen("source.dyd", "w", stdout);
-    freopen("source.err", "w", stderr);
-    char c;
+int main(int argc, char* argv[]) {
+    if (argc > 1) {
+        char* filename = (char *) malloc(strlen(argv[1]) + 3);
+
+        strcpy(filename, argv[1]);
+        strcat(filename, ".pas");
+        freopen(filename, "r", stdin);
+
+        strcpy(filename, argv[1]);
+        strcat(filename, ".dyd");
+        freopen(filename, "w", stdout);
+
+        strcpy(filename, argv[1]);
+        strcat(filename, ".err");
+        freopen(filename, "w", stderr);
+    }
+    else {
+        freopen("source.pas", "r", stdin);
+        freopen("source.dyd", "w", stdout);
+        freopen("source.err", "w", stderr);
+    }
+
     // process a word during a loop
     // the entry is state 0 (always)
     while (1) {
@@ -110,15 +133,15 @@ int main() {
             goto s3;
         }
         switch (c) {
-            case '=': concat(c); goto s5; break;
-            case '-': concat(c); goto s6; break;
-            case '*': concat(c); goto s7; break;
-            case '(': concat(c); goto s8; break;
-            case ')': concat(c); goto s9; break;
-            case '<': concat(c); goto s10; break;
-            case '>': concat(c); goto s14; break;
-            case ':': concat(c); goto s17; break;
-            case ';': concat(c); goto s20; break;
+            case '=': concat(c); goto s5;
+            case '-': concat(c); goto s6;
+            case '*': concat(c); goto s7;
+            case '(': concat(c); goto s8;
+            case ')': concat(c); goto s9;
+            case '<': concat(c); goto s10;
+            case '>': concat(c); goto s14;
+            case ':': concat(c); goto s17;
+            case ';': concat(c); goto s20;
             default: goto s21;
         }
 
@@ -219,7 +242,9 @@ int main() {
         continue;
 
         s19:
-        accept();
+        fprintf(stderr, "***Line:%d  Char \"%c\" mismatch after \":\"\n", line, c);
+        len_token = 0;
+        token[0] = '\0';
         continue;
 
         s20:
@@ -228,12 +253,12 @@ int main() {
 
         s21:
         if (c == '\n') {
-            fprintf(stdout, "%16s %2d\n", "EOLN", 24);
+            fprintf(stdout, "%*s %2d\n", MAX_LEN, "EOLN", 24);
             line++;
             used = 1;
         }
         else {
-            fprintf(stderr, "***Line:%d  invalid symbol %c\n", line, c);
+            fprintf(stderr, "***Line:%d  Invalid symbol \"%c\"\n", line, c);
             used = 1;
         }
     }
