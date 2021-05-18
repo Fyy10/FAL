@@ -5,8 +5,8 @@
 #define END 2
 #define INTEGER 3
 #define IF 4
-#define ELSE 5
-#define THEN 6
+#define THEN 5
+#define ELSE 6
 #define FUNCTION 7
 #define READ 8
 #define WRITE 9
@@ -38,6 +38,8 @@
 //     RP, SC
 // };
 
+int line = 1;
+
 int yywrap(void) {
     return 1;
 }
@@ -63,16 +65,24 @@ int yywrap(void) {
 ">" return GT;
 "-" return SUB;
 "*" return MUL;
+:[^=] {
+    printf("***Line:%d  Symbol \"%c\" mismatch after \":\"\n", line, yytext[1]);
+    yyless(1);
+}
 ":=" return ASSIGN;
 "(" return LP;
 ")" return RP;
 ";" return SC;
-"\n" return EOLN;
+"\n" {
+    line++;
+    return EOLN;
+}
 <<EOF>> return EOF;
-[a-zA-Z]+[0-9a-zA-z]* return ID;
+[a-zA-Z][0-9a-zA-z]{0,15} return ID;
+[a-zA-Z][0-9a-zA-z]{16,} printf("***Line:%d  Variable \"%s\" length exceeded\n", line, yytext);
 [0-9]+ return CONST;
 [ \t] ;
-. printf("Invalid symbol \"%c\"\n", *yytext);
+. printf("***Line:%d  Invalid symbol \"%c\"\n", line, *yytext);
 
 %%
 
