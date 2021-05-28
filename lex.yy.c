@@ -908,7 +908,7 @@ case 18:
 YY_RULE_SETUP
 #line 68 "Lex.l"
 {
-    printf("***Line:%d  Symbol \"%c\" mismatch after \":\"\n", line, yytext[1]);
+    fprintf(stderr, "***Line:%d  Symbol \"%c\" mismatch after \":\"\n", line, yytext[1]);
     yyless(1);
 }
 	YY_BREAK
@@ -953,7 +953,7 @@ return ID;
 case 25:
 YY_RULE_SETUP
 #line 82 "Lex.l"
-printf("***Line:%d  Variable \"%s\" length exceeded\n", line, yytext);
+fprintf(stderr, "***Line:%d  Variable \"%s\" length exceeded\n", line, yytext);
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
@@ -968,7 +968,7 @@ YY_RULE_SETUP
 case 28:
 YY_RULE_SETUP
 #line 85 "Lex.l"
-printf("***Line:%d  Invalid symbol \"%c\"\n", line, *yytext);
+fprintf(stderr, "***Line:%d  Invalid symbol \"%c\"\n", line, *yytext);
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
@@ -1983,18 +1983,42 @@ void yyfree (void * ptr )
 
 #define MAX_LEN 16
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc > 1) {
+        char* filename = (char *) malloc(strlen(argv[1]) + 5 + 1 + 3 + 1);
+
+        strcpy(filename, argv[1]);
+        strcat(filename, ".pas");
+        freopen(filename, "r", stdin);
+
+        strcpy(filename, argv[1]);
+        strcat(filename, "_flex.dyd");
+        freopen(filename, "w", stdout);
+
+        strcpy(filename, argv[1]);
+        strcat(filename, "_flex.err");
+        freopen(filename, "w", stderr);
+    }
+    else {
+        freopen("source.pas", "r", stdin);
+        freopen("source_flex.dyd", "w", stdout);
+        freopen("source_flex.err", "w", stderr);
+    }
+
     while (1) {
         int id;
         id = yylex();
         if (id == EOLN) {
-            printf("%*s %2d\n", MAX_LEN, "EOLN", EOLN);
+            fprintf(stdout, "%*s %2d\n", MAX_LEN, "EOLN", EOLN);
         }
         else if (id == EOF) {
-            printf("%*s %2d\n", MAX_LEN, "EOF", 25);
+            fprintf(stdout, "%*s %2d\n", MAX_LEN, "EOF", 25);
             break;
         }
-        else printf("%*s %2d\n", MAX_LEN, yytext, id);
+        else fprintf(stdout, "%*s %2d\n", MAX_LEN, yytext, id);
     }
+    fclose(stdin);
+    fclose(stdout);
+    fclose(stderr);
     return 0;
 }

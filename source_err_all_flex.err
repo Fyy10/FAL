@@ -1,0 +1,12 @@
+***Line:2  Variable "aVeryLongVariableHaHa" length exceeded
+***Line:2  Invalid symbol "!"
+***Line:3  Invalid symbol "&"
+***Line:6  Symbol "(" mismatch after ":"
+***Line:7  Symbol "+" mismatch after ":"
+***Line:7  Invalid symbol "+"
+***Line:9  Invalid symbol "#"
+***Line:10  Variable "aVeryLongVariableHaHa" length exceeded
+***Line:10  Symbol "~" mismatch after ":"
+***Line:10  Invalid symbol "~"
+***Line:11  Variable "aVeryLongVariableHaHa" length exceeded
+***Line:12  Invalid symbol "$"
