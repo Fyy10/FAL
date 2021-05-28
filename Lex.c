@@ -93,7 +93,7 @@ int accept() {
 
 int main(int argc, char* argv[]) {
     if (argc > 1) {
-        char* filename = (char *) malloc(strlen(argv[1]) + 3);
+        char* filename = (char *) malloc(strlen(argv[1]) + 1 + 3 + 1);
 
         strcpy(filename, argv[1]);
         strcat(filename, ".pas");
