@@ -8,5 +8,5 @@ begin
         end;
     read(m);
     aVeryLongVariable114514 := F(m);
-    write(aVeryLongVariable114514);
+    write(aVeryLongVariable114514)
 end

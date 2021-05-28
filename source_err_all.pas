@@ -8,5 +8,5 @@ begin
         end;
     read(m#);
     aVeryLongVariableHaHa :~= F(m);
-    write(aVeryLongVariableHaHa);
+    write(aVeryLongVariableHaHa)
 end$

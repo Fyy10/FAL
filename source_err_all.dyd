@@ -61,7 +61,7 @@ aVeryLongVariabl 10
                ( 21
 aVeryLongVariabl 10
                ) 22
-               ; 23
             EOLN 24
              end  2
+            EOLN 24
              EOF 25
