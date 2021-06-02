@@ -226,15 +226,15 @@ int SUBPROG() {
                 return 0;
             }
             else {
-                fprintf(stderr, "***Line:%d \"end\" missing\n", line);
+                fprintf(stderr, "***Line:%d no \"end\" after \"begin\"\n", line);
             }
         }
         else {
-            fprintf(stderr, "***Line:%d \";\" missing\n", line);
+            fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
         }
     }
     else {
-        fprintf(stderr, "***Line:%d no \"begin\"\n", line);
+        fprintf(stderr, "***Line:%d expected \"begin\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -247,7 +247,7 @@ int DEF_LIST() {
         DEF_LIST_P();
     }
     else {
-        fprintf(stderr, "***Line:%d expected integer here\n", line);
+        fprintf(stderr, "***Line:%d expected \"integer\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -302,15 +302,15 @@ int DEF() {
                     FUNC();
                 }
                 else {
-                    fprintf(stderr, "***Line:%d \";\" missing\n", line);
+                    fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
                 }
             }
             else {
-                fprintf(stderr, "***Line:%d \")\" missing\n", line);
+                fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
             }
         }
         else {
-            fprintf(stderr, "***Line:%d \"(\" missing\n", line);
+            fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
         }
     }
     else {
@@ -356,15 +356,15 @@ int FUNC() {
                 return 0;
             }
             else {
-                fprintf(stderr, "***Line:%d \"end\" missing\n", line);
+                fprintf(stderr, "***Line:%d no \"end\" after \"begin\"\n", line);
             }
         }
         else {
-            fprintf(stderr, "***Line:%d \";\" missing\n", line);
+            fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
         }
     }
     else {
-        fprintf(stderr, "***Line:%d no \"begin\"\n", line);
+        fprintf(stderr, "***Line:%d expected \"begin\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -402,11 +402,11 @@ int READ_G() {
             return 0;
         }
         else {
-            fprintf(stderr, "***Line:%d \")\" missing\n", line);
+            fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
         }
     }
     else {
-        fprintf(stderr, "***Line:%d \"(\" missing\n", line);
+        fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -422,11 +422,11 @@ int WRITE_G() {
             return 0;
         }
         else {
-            fprintf(stderr, "***Line:%d \")\" missing\n", line);
+            fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
         }
     }
     else {
-        fprintf(stderr, "***Line:%d \"(\" missing\n", line);
+        fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -439,7 +439,7 @@ int ASSIGN_G() {
         EXPR();
     }
     else {
-        fprintf(stderr, "***Line:%d \":=\" missing\n", line);
+        fprintf(stderr, "***Line:%d expected \":=\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -456,11 +456,11 @@ int COND() {
             EXE();
         }
         else {
-            fprintf(stderr, "***Line:%d \"else\" missing\n", line);
+            fprintf(stderr, "***Line:%d expected \"else\", got \"%s\"\n", line, token);
         }
     }
     else {
-        fprintf(stderr, "***Line:%d \"then\" missing\n", line);
+        fprintf(stderr, "***Line:%d expected \"then\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -510,7 +510,7 @@ int FACTOR() {
         CONST_G();
     }
     else {
-        fprintf(stderr, "***Line:%d constant expected\n", line);
+        fprintf(stderr, "***Line:%d expected a constant, got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -522,7 +522,7 @@ int CONST_G() {
         return 0;
     }
     else {
-        fprintf(stderr, "***Line:%d constant expected\n", line);
+        fprintf(stderr, "***Line:%d expected a constant, got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -539,11 +539,11 @@ int CALL() {
             return 0;
         }
         else {
-            fprintf(stderr, "***Line:%d \")\" missing\n", line);
+            fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
         }
     }
     else {
-        fprintf(stderr, "***Line:%d \"(\" missing\n", line);
+        fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
     }
     return 0;
 }
@@ -577,7 +577,7 @@ int OP() {
         used = 1;
         break;
     default:
-        fprintf(stderr, "***Line:%d invalid operator\n", line);
+        fprintf(stderr, "***Line:%d expected an operator, got \"%s\"\n", line, token);
         break;
     }
     return 0;
