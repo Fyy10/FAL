@@ -34,8 +34,8 @@ struct variable {
     char vname[MAX_LEN + 1];
     char vproc[MAX_LEN + 1];
     int vkind;
-    // types: (int)
-    char vtype[4];
+    // types: (integer)
+    char vtype[8];
     int vlev;
     int vadr;
 } var_table[TABLE_LEN];
@@ -43,8 +43,8 @@ int len_var_table = 0;
 
 struct process {
     char pname[MAX_LEN + 1];
-    // types: (int)
-    char ptype[4];
+    // types: (integer)
+    char ptype[8];
     int plev;
     int fadr;
     int ladr;
