@@ -28,6 +28,7 @@
 #define EOLN 24
 
 #define MAX_LEN 16
+#define TABLE_LEN 10
 
 struct variable {
     char vname[MAX_LEN + 1];
@@ -37,8 +38,8 @@ struct variable {
     char vtype[4];
     int vlev;
     int vadr;
-    struct variable *next;
-} *var_table;
+} var_table[TABLE_LEN];
+int len_var_table = 0;
 
 struct process {
     char pname[MAX_LEN + 1];
@@ -47,8 +48,8 @@ struct process {
     int plev;
     int fadr;
     int ladr;
-    struct process *next;
-} *proc_table;
+} proc_table[TABLE_LEN];
+int len_proc_table = 0;
 
 int used = 1;
 char token[MAX_LEN + 1];
@@ -65,6 +66,7 @@ int eof = 0;
 int get_next_token();
 int get_buff_token();
 int print_dys();
+int print_buff_dys();
 
 int add_var();
 int add_proc();
@@ -131,12 +133,8 @@ int main(int argc, char* argv[]) {
     }
 
     PROG();
-    // while (!eof)
-    // {
-    //     get_next_token();
-    //     print_dys();
-    //     used = 1;
-    // }
+    // the rest should be EOLN and EOF, simply output all
+    get_next_token();
 
     fclose(stdin);
     fclose(stdout);
@@ -152,6 +150,7 @@ int get_next_token() {
             strcpy(token, buff_token);
             id = buff_id;
             buff_valid = 0;
+            break;
         }
         else if (used) {
             scanf("%s %d", token, &id);
@@ -183,8 +182,7 @@ int get_buff_token() {
         buff_valid = 1;
 
         if (buff_id == EOLN) {
-            // print_dys();
-            fprintf(stdout, "%*s %2d\n", MAX_LEN, buff_token, buff_id);
+            print_buff_dys();
             line++;
             continue;
         }
@@ -192,6 +190,7 @@ int get_buff_token() {
         //     used = 1;
         //     eof = 1;
         // }
+        print_buff_dys();
         break;
     }
     return 0;
@@ -199,6 +198,11 @@ int get_buff_token() {
 
 int print_dys() {
     fprintf(stdout, "%*s %2d\n", MAX_LEN, token, id);
+    return 0;
+}
+
+int print_buff_dys() {
+    fprintf(stdout, "%*s %2d\n", MAX_LEN, buff_token, buff_id);
     return 0;
 }
 
