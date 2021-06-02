@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
+#include "assert.h"
 
 #define BG 1
 #define END 2
@@ -30,7 +31,8 @@
 #define MAX_LEN 16
 #define TABLE_LEN 10
 
-struct variable {
+struct variable
+{
     char vname[MAX_LEN + 1];
     char vproc[MAX_LEN + 1];
     int vkind;
@@ -41,7 +43,8 @@ struct variable {
 } var_table[TABLE_LEN];
 int len_var_table = 0;
 
-struct process {
+struct process
+{
     char pname[MAX_LEN + 1];
     // types: (integer)
     char ptype[8];
@@ -80,6 +83,8 @@ int DEF_LIST_P();
 int EXE_LIST();
 int EXE_LIST_P();
 int DEF();
+int VDEF();
+int FDEF();
 int VAR();
 int ID_G();
 int PARAM();
@@ -99,10 +104,12 @@ int CALL();
 int COND_EXPR();
 int OP();
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
     FILE *fvar, *fproc;
-    if (argc > 1) {
-        char* filename = (char *) malloc(strlen(argv[1]) + 1 + 3 + 1);
+    if (argc > 1)
+    {
+        char *filename = (char *)malloc(strlen(argv[1]) + 1 + 3 + 1);
 
         strcpy(filename, argv[1]);
         strcat(filename, ".dyd");
@@ -124,7 +131,8 @@ int main(int argc, char* argv[]) {
         strcat(filename, ".pro");
         fproc = fopen(filename, "w");
     }
-    else {
+    else
+    {
         freopen("source.dyd", "r", stdin);
         freopen("source.dys", "w", stdout);
         freopen("source.err", "w", stderr);
@@ -144,29 +152,37 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-int get_next_token() {
-    while (1) {
-        if (used && buff_valid) {
+int get_next_token()
+{
+    while (1)
+    {
+        if (used && buff_valid)
+        {
             strcpy(token, buff_token);
             id = buff_id;
             buff_valid = 0;
+            used = 0;
             break;
         }
-        else if (used) {
+        else if (used)
+        {
             scanf("%s %d", token, &id);
             used = 0;
         }
-        else {
+        else
+        {
             break;
         }
 
-        if (id == EOLN) {
+        if (id == EOLN)
+        {
             print_dys();
             used = 1;
             line++;
             continue;
         }
-        if (id == 25) {
+        if (id == 25)
+        {
             used = 1;
             eof = 1;
         }
@@ -176,12 +192,15 @@ int get_next_token() {
     return 0;
 }
 
-int get_buff_token() {
-    while (1) {
+int get_buff_token()
+{
+    while (1)
+    {
         scanf("%s %d", buff_token, &buff_id);
         buff_valid = 1;
 
-        if (buff_id == EOLN) {
+        if (buff_id == EOLN)
+        {
             print_buff_dys();
             line++;
             continue;
@@ -196,70 +215,88 @@ int get_buff_token() {
     return 0;
 }
 
-int print_dys() {
+int print_dys()
+{
     fprintf(stdout, "%*s %2d\n", MAX_LEN, token, id);
     return 0;
 }
 
-int print_buff_dys() {
+int print_buff_dys()
+{
     fprintf(stdout, "%*s %2d\n", MAX_LEN, buff_token, buff_id);
     return 0;
 }
 
-int PROG() {
+int PROG()
+{
     SUBPROG();
     return 0;
 }
 
-int SUBPROG() {
+int SUBPROG()
+{
     get_next_token();
-    if (id == BG) {
+    if (id == BG)
+    {
         used = 1;
         DEF_LIST();
         get_next_token();
-        if (id == SC) {
+        if (id == SC)
+        {
             used = 1;
             EXE_LIST();
             get_next_token();
-            if (id == END) {
+            if (id == END)
+            {
                 used = 1;
                 return 0;
             }
-            else {
+            else
+            {
                 fprintf(stderr, "***Line:%d no \"end\" after \"begin\"\n", line);
             }
         }
-        else {
+        else
+        {
             fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
         }
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected \"begin\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int DEF_LIST() {
-    get_next_token();
-    if (id == INTEGER) {
-        used = 1;
-        DEF();
-        DEF_LIST_P();
-    }
-    else {
-        fprintf(stderr, "***Line:%d expected \"integer\", got \"%s\"\n", line, token);
-    }
+int DEF_LIST()
+{
+    // get_next_token();
+    // if (id == INTEGER) {
+    //     used = 1;
+    //     DEF();
+    //     DEF_LIST_P();
+    // }
+    // else {
+    //     fprintf(stderr, "***Line:%d expected \"integer\", got \"%s\"\n", line, token);
+    // }
+    // return 0;
+    DEF();
+    DEF_LIST_P();
     return 0;
 }
 
-int DEF_LIST_P() {
-    if (buff_valid) return 0;
+int DEF_LIST_P()
+{
+    if (buff_valid)
+        return 0;
     get_next_token();
-    if (id == SC) {
+    if (id == SC)
+    {
         get_buff_token();
-        if (buff_id == INTEGER) {
+        if (buff_id == INTEGER)
+        {
             used = 1;
-            buff_valid = 0;
+            // buff_valid = 0;
             DEF();
             DEF_LIST_P();
         }
@@ -267,16 +304,20 @@ int DEF_LIST_P() {
     return 0;
 }
 
-int EXE_LIST() {
+int EXE_LIST()
+{
     EXE();
     EXE_LIST_P();
     return 0;
 }
 
-int EXE_LIST_P() {
-    if (buff_valid) return 0;
+int EXE_LIST_P()
+{
+    if (buff_valid)
+        return 0;
     get_next_token();
-    if (id == SC) {
+    if (id == SC)
+    {
         used = 1;
         EXE();
         EXE_LIST_P();
@@ -284,196 +325,339 @@ int EXE_LIST_P() {
     return 0;
 }
 
-int DEF() {
+int DEF()
+{
     get_next_token();
-    if (id == FUNCTION) {
-        used = 1;
-        ID_G();
-        get_next_token();
-        if (id == LP) {
+    if (id == INTEGER)
+    {
+    is_integer:
+        get_buff_token();
+        switch (buff_id)
+        {
+        case ID:
+            VDEF();
+            break;
+
+        case FUNCTION:
+            FDEF();
+            break;
+
+        default:
+            fprintf(stderr, "***Line:%d expected a variable or process name, got \"%s\"\n", line, buff_token);
             used = 1;
-            PARAM();
-            get_next_token();
-            if (id == RP) {
-                used = 1;
-                get_next_token();
-                if (id == SC) {
-                    used = 1;
-                    FUNC();
-                }
-                else {
-                    fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
-                }
-            }
-            else {
-                fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
-            }
-        }
-        else {
-            fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
+            buff_valid = 0;
+            break;
         }
     }
-    else {
+    else
+    {
+        fprintf(stderr, "***Line:%d expected \"integer\", got \"%s\"\n", line, token);
+        // recover
+        strcpy(token, "integer");
+        id = INTEGER;
+        goto is_integer;
+    }
+
+    // if (id == FUNCTION) {
+    //     used = 1;
+    //     ID_G();
+    //     get_next_token();
+    //     if (id == LP) {
+    //         used = 1;
+    //         PARAM();
+    //         get_next_token();
+    //         if (id == RP) {
+    //             used = 1;
+    //             get_next_token();
+    //             if (id == SC) {
+    //                 used = 1;
+    //                 FUNC();
+    //             }
+    //             else {
+    //                 fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
+    //             }
+    //         }
+    //         else {
+    //             fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
+    //         }
+    //     }
+    //     else {
+    //         fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
+    //     }
+    // }
+    // else {
+    //     VAR();
+    // }
+    return 0;
+}
+
+int VDEF()
+{
+    get_next_token();
+    if (id == INTEGER)
+    {
+        used = 1;
         VAR();
+    }
+    else
+    {
+        fprintf(stderr, "***Line:%d expected \"integer\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int VAR() {
+int FDEF()
+{
+    get_next_token();
+    if (id == INTEGER)
+    {
+        used = 1;
+        get_next_token();
+        if (id == FUNCTION)
+        {
+            used = 1;
+            ID_G();
+            get_next_token();
+            if (id == LP)
+            {
+                used = 1;
+                PARAM();
+                get_next_token();
+                if (id == RP)
+                {
+                    used = 1;
+                    get_next_token();
+                    if (id == SC)
+                    {
+                        used = 1;
+                        FUNC();
+                    }
+                    else
+                    {
+                        fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
+                }
+            }
+            else
+            {
+                fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
+            }
+        }
+        else
+        {
+            fprintf(stderr, "***Line:%d expected \"function\", got \"%s\"\n", line, token);
+        }
+    }
+    else
+    {
+        fprintf(stderr, "***Line:%d expected \"integer\", got \"%s\"\n", line, token);
+    }
+    return 0;
+}
+
+int VAR()
+{
     ID_G();
     return 0;
 }
 
-int ID_G() {
+int ID_G()
+{
     get_next_token();
-    if (id == ID) {
+    if (id == ID)
+    {
         used = 1;
         return 0;
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d variable expected\n", line);
     }
     return 0;
 }
 
-int PARAM() {
+int PARAM()
+{
     VAR();
     return 0;
 }
 
-int FUNC() {
+int FUNC()
+{
     get_next_token();
-    if (id == BG) {
+    if (id == BG)
+    {
         used = 1;
         DEF_LIST();
         get_next_token();
-        if (id == SC) {
+        if (id == SC)
+        {
             used = 1;
             EXE_LIST();
             get_next_token();
-            if (id == END) {
+            if (id == END)
+            {
                 used = 1;
                 return 0;
             }
-            else {
+            else
+            {
                 fprintf(stderr, "***Line:%d no \"end\" after \"begin\"\n", line);
             }
         }
-        else {
+        else
+        {
             fprintf(stderr, "***Line:%d expected \";\", got \"%s\"\n", line, token);
         }
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected \"begin\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int EXE() {
+int EXE()
+{
     get_next_token();
-    switch (id) {
+    switch (id)
+    {
     case READ:
-        used = 1;
         READ_G();
         break;
     case WRITE:
-        used = 1;
         WRITE_G();
         break;
     case IF:
-        used = 1;
         COND();
         break;
-    default:
+    case ID:
         ASSIGN_G();
+        break;
+    default:
+        fprintf(stderr, "***Line:%d invalid exe statement \"%s\"\n", line, token);
         break;
     }
     return 0;
 }
 
-int READ_G() {
+int READ_G()
+{
     get_next_token();
-    if (id == LP) {
+    assert(id == READ);
+    used = 1;
+    get_next_token();
+    if (id == LP)
+    {
         used = 1;
         VAR();
         get_next_token();
-        if (id == RP) {
+        if (id == RP)
+        {
             used = 1;
             return 0;
         }
-        else {
+        else
+        {
             fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
         }
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int WRITE_G() {
+int WRITE_G()
+{
     get_next_token();
-    if (id == LP) {
+    assert(id == WRITE);
+    used = 1;
+    get_next_token();
+    if (id == LP)
+    {
         used = 1;
         VAR();
         get_next_token();
-        if (id == RP) {
+        if (id == RP)
+        {
             used = 1;
             return 0;
         }
-        else {
+        else
+        {
             fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
         }
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int ASSIGN_G() {
+int ASSIGN_G()
+{
     VAR();
     get_next_token();
-    if (id == ASSIGN) {
+    if (id == ASSIGN)
+    {
         used = 1;
         EXPR();
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected \":=\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int COND() {
+int COND()
+{
+    get_next_token();
+    assert(id == IF);
+    used = 1;
     COND_EXPR();
     get_next_token();
-    if (id == THEN) {
+    if (id == THEN)
+    {
         used = 1;
         EXE();
         get_next_token();
-        if (id == ELSE) {
+        if (id == ELSE)
+        {
             used = 1;
             EXE();
         }
-        else {
+        else
+        {
             fprintf(stderr, "***Line:%d expected \"else\", got \"%s\"\n", line, token);
         }
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected \"then\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int EXPR() {
+int EXPR()
+{
     TERM();
     EXPR_P();
     return 0;
 }
 
-int EXPR_P() {
+int EXPR_P()
+{
     get_next_token();
-    if (id == SUB) {
+    if (id == SUB)
+    {
         used = 1;
         TERM();
         EXPR_P();
@@ -481,15 +665,18 @@ int EXPR_P() {
     return 0;
 }
 
-int TERM() {
+int TERM()
+{
     FACTOR();
     TERM_P();
     return 0;
 }
 
-int TERM_P() {
+int TERM_P()
+{
     get_next_token();
-    if (id == MUL) {
+    if (id == MUL)
+    {
         used = 1;
         FACTOR();
         TERM_P();
@@ -497,67 +684,105 @@ int TERM_P() {
     return 0;
 }
 
-int FACTOR() {
+int FACTOR()
+{
     get_next_token();
-    if (id == ID) {
-        used = 1;
-        get_next_token();
-        if (id == LP) {
+    switch (id)
+    {
+    case CONST:
+        CONST_G();
+        break;
+
+    case ID:
+        get_buff_token();
+        if (buff_id == LP)
+        {
             CALL();
         }
+        else
+        {
+            VAR();
+        }
+        break;
+
+    default:
+        fprintf(stderr, "***Line:%d invalid factor \"%s\"\n", line, token);
+        break;
     }
-    else if (id == CONST) {
-        CONST_G();
-    }
-    else {
-        fprintf(stderr, "***Line:%d expected a constant, got \"%s\"\n", line, token);
-    }
+    // if (id == ID)
+    // {
+    //     used = 1;
+    //     get_next_token();
+    //     if (id == LP)
+    //     {
+    //         CALL();
+    //     }
+    // }
+    // else if (id == CONST)
+    // {
+    //     CONST_G();
+    // }
+    // else
+    // {
+    //     fprintf(stderr, "***Line:%d expected a constant, got \"%s\"\n", line, token);
+    // }
     return 0;
 }
 
-int CONST_G() {
+int CONST_G()
+{
     get_next_token();
-    if (id == CONST) {
+    if (id == CONST)
+    {
         used = 1;
         return 0;
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected a constant, got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int CALL() {
-    // ID_G();
+int CALL()
+{
+    ID_G();
     get_next_token();
-    if (id == LP) {
+    if (id == LP)
+    {
         used = 1;
         EXPR();
         get_next_token();
-        if (id == RP) {
+        if (id == RP)
+        {
             used = 1;
             return 0;
         }
-        else {
+        else
+        {
             fprintf(stderr, "***Line:%d no \")\" after \"(\"\n", line);
         }
     }
-    else {
+    else
+    {
         fprintf(stderr, "***Line:%d expected \"(\", got \"%s\"\n", line, token);
     }
     return 0;
 }
 
-int COND_EXPR() {
+int COND_EXPR()
+{
     EXPR();
     OP();
     EXPR();
     return 0;
 }
 
-int OP() {
+int OP()
+{
     get_next_token();
-    switch (id) {
+    switch (id)
+    {
     case EQU:
         used = 1;
         break;
@@ -583,18 +808,22 @@ int OP() {
     return 0;
 }
 
-int add_var() {
+int add_var()
+{
     return 0;
 }
 
-int add_proc() {
+int add_proc()
+{
     return 0;
 }
 
-int search_var() {
+int search_var()
+{
     return 0;
 }
 
-int search_proc() {
+int search_proc()
+{
     return 0;
 }
