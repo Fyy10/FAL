@@ -52,6 +52,37 @@ COND_EXPR -> EXPR OP EXPR
 
 PROG -> SUBPROG
 SUBPROG -> begin DEF_LIST ; EXE_LIST end
+DEF_LIST -> DEF DEF_LIST_P
+DEF_LIST_P -> ; DEF DEF_LIST | $\varepsilon$
+DEF -> VDEF | FDEF
+VDEF -> integer VAR
+VAR -> ID
+ID -> id
+FDEF -> integer function ID (PARAM) ; FUNC
+PARAM -> VAR
+FUNC -> begin DEF_LIST ; EXE_LIST end
+EXE_LIST -> EXE EXE_LIST_P
+EXE_LIST_P -> ; EXE EXE_LIST_P | $\varepsilon$
+EXE -> READ | WRITE | ASSIGN | COND
+READ -> read(VAR)
+WRITE -> write(VAR)
+ASSIGN -> VAR := EXPR
+EXPR -> TERM EXPR_P
+EXPR_P -> - TERM EXPR_P | $\varepsilon$
+TERM -> FACTOR TERM_P
+TERM_P -> * FACTOR TERM_P | $\varepsilon$
+FACTOR -> VAR | CONST | CALL
+CALL -> ID(EXPR)
+CONST -> const
+COND -> if COND_EXPR then EXE else EXE
+COND_EXPR -> EXPR OP EXPR
+OP -> op
+
+
+## 递归下降
+
+PROG -> SUBPROG
+SUBPROG -> begin DEF_LIST ; EXE_LIST end
 DEF_LIST -> integer DEF DEF_LIST_P
 DEF_LIST_P -> ; integer DEF DEF_LIST_P | $\varepsilon$
 DEF -> VAR | function id (PARAM) ; FUNC
