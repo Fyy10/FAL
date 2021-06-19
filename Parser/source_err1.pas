@@ -1,5 +1,5 @@
 begin
-    integer k;
+    intger k;
     integer m;
     integer function F(n);
         begin

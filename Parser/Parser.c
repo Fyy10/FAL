@@ -63,7 +63,8 @@ int buff_valid = 0;
 char buff_token[MAX_LEN + 1];
 int buff_id;
 
-int level = 0, line = 1;
+int level = 1, line = 1;
+char proc[MAX_LEN + 1];
 int eof = 0;
 
 int get_next_token();
@@ -71,10 +72,14 @@ int get_buff_token();
 int print_dys();
 int print_buff_dys();
 
-int add_var();
-int add_proc();
-int search_var();
-int search_proc();
+int flush();
+
+int add_var(char *name, char *proc, int kind, char *type);
+int add_proc(char *name, char *type);
+int search_var(char *name, int lev);
+int search_proc(char *name, int lev);
+int print_var(FILE *fvar);
+int print_proc(FILE *fproc);
 
 int PROG();
 int SUBPROG();
@@ -143,6 +148,8 @@ int main(int argc, char *argv[])
     PROG();
     // the rest should be EOLN and EOF, simply output all
     get_next_token();
+    print_var(fvar);
+    print_proc(fproc);
 
     fclose(stdin);
     fclose(stdout);
@@ -227,8 +234,19 @@ int print_buff_dys()
     return 0;
 }
 
+int flush()
+{
+    while (id != SC && id != EOLN)
+    {
+        used = 1;
+        get_next_token();
+    }
+    return 0;
+}
+
 int PROG()
 {
+    strcpy(proc, "main");
     SUBPROG();
     return 0;
 }
@@ -330,7 +348,7 @@ int DEF()
     get_next_token();
     if (id == INTEGER)
     {
-    is_integer:
+        // is_integer:
         get_buff_token();
         switch (buff_id)
         {
@@ -339,7 +357,9 @@ int DEF()
             break;
 
         case FUNCTION:
+            level++;
             FDEF();
+            level--;
             break;
 
         default:
@@ -352,10 +372,11 @@ int DEF()
     else
     {
         fprintf(stderr, "***Line:%d expected \"integer\", got \"%s\"\n", line, token);
+        flush();
         // recover
-        strcpy(token, "integer");
-        id = INTEGER;
-        goto is_integer;
+        // strcpy(token, "integer");
+        // id = INTEGER;
+        // goto is_integer;
     }
 
     // if (id == FUNCTION) {
@@ -397,7 +418,17 @@ int VDEF()
     if (id == INTEGER)
     {
         used = 1;
-        VAR();
+        get_next_token();
+        if (search_var(token, level) != -1)
+        {
+            fprintf(stderr, "***Line:%d variable \"%s\" already defined\n", line, token);
+            flush();
+        }
+        else
+        {
+            add_var(token, proc, 0, "int");
+            VAR();
+        }
     }
     else
     {
@@ -416,6 +447,12 @@ int FDEF()
         if (id == FUNCTION)
         {
             used = 1;
+            get_next_token();
+            if (id == ID)
+            {
+                strcpy(proc, token);
+                add_proc(token, "int");
+            }
             ID_G();
             get_next_token();
             if (id == LP)
@@ -430,7 +467,10 @@ int FDEF()
                     if (id == SC)
                     {
                         used = 1;
+                        proc_table[len_proc_table - 1].fadr = len_var_table - 1;
                         FUNC();
+                        proc_table[len_proc_table - 1].ladr = len_var_table - 1;
+                        strcpy(proc, "main");
                     }
                     else
                     {
@@ -461,6 +501,11 @@ int FDEF()
 
 int VAR()
 {
+    get_next_token();
+    if ((id == ID) && (search_var(token, level) == -1) && (search_proc(token, level) == -1))
+    {
+        fprintf(stderr, "***Line:%d variable \"%s\" undefined\n", line, token);
+    }
     ID_G();
     return 0;
 }
@@ -482,7 +527,10 @@ int ID_G()
 
 int PARAM()
 {
-    VAR();
+    get_next_token();
+    add_var(token, proc, 1, "int");
+    // VAR();
+    ID_G();
     return 0;
 }
 
@@ -540,6 +588,7 @@ int EXE()
         break;
     default:
         fprintf(stderr, "***Line:%d invalid exe statement \"%s\"\n", line, token);
+        flush();
         break;
     }
     return 0;
@@ -554,6 +603,13 @@ int READ_G()
     if (id == LP)
     {
         used = 1;
+        get_next_token();
+        if ((id == ID) && (search_var(token, level) == -1))
+        {
+            fprintf(stderr, "***Line:%d variable \"%s\" undefined\n", line, token);
+            flush();
+            return 0;
+        }
         VAR();
         get_next_token();
         if (id == RP)
@@ -582,6 +638,17 @@ int WRITE_G()
     if (id == LP)
     {
         used = 1;
+        get_next_token();
+        if ((id == ID) && (search_var(token, level) == -1))
+        {
+            fprintf(stderr, "***Line:%d variable \"%s\" undefined\n", line, token);
+            // flush
+            while (id != EOLN)
+                scanf("%s %d", token, &id);
+            used = 1;
+            get_next_token();
+            return 0;
+        }
         VAR();
         get_next_token();
         if (id == RP)
@@ -603,6 +670,13 @@ int WRITE_G()
 
 int ASSIGN_G()
 {
+    get_next_token();
+    if ((id == ID) && (search_var(token, level) == -1) && (search_proc(token, level) == -1))
+    {
+        fprintf(stderr, "***Line:%d variable \"%s\" undefined\n", line, token);
+        flush();
+        return 0;
+    }
     VAR();
     get_next_token();
     if (id == ASSIGN)
@@ -808,22 +882,65 @@ int OP()
     return 0;
 }
 
-int add_var()
+int add_var(char *name, char *proc, int kind, char *type)
 {
+    strcpy(var_table[len_var_table].vname, name);
+    strcpy(var_table[len_var_table].vproc, proc);
+    var_table[len_var_table].vkind = kind;
+    strcpy(var_table[len_var_table].vtype, type);
+    var_table[len_var_table].vlev = level;
+    var_table[len_var_table].vadr = len_var_table;
+    len_var_table++;
     return 0;
 }
 
-int add_proc()
+int add_proc(char *name, char *type)
 {
+    strcpy(proc_table[len_proc_table].pname, name);
+    strcpy(proc_table[len_proc_table].ptype, type);
+    proc_table[len_proc_table].plev = level;
+    len_proc_table++;
     return 0;
 }
 
-int search_var()
+int search_var(char *name, int lev)
 {
+    for (int i = 0; i < len_var_table; i++)
+    {
+        if ((strcmp(var_table[i].vname, name) == 0) && (var_table[i].vlev == lev) && (var_table[i].vkind == 0))
+            return i;
+    }
+    return -1;
+}
+
+int search_proc(char *name, int lev)
+{
+    for (int i = 0; i < len_proc_table; i++)
+    {
+        if (strcmp(proc_table[i].pname, name) == 0)
+            return i;
+    }
+    return -1;
+}
+
+int print_var(FILE *fvar)
+{
+    for (int i = 0; i < len_var_table; i++)
+    {
+        fprintf(fvar, "%s %s %d %s %d %d\n",
+                var_table[i].vname, var_table[i].vproc, var_table[i].vkind,
+                var_table[i].vtype, var_table[i].vlev, var_table[i].vadr);
+    }
     return 0;
 }
 
-int search_proc()
+int print_proc(FILE *fproc)
 {
+    for (int i = 0; i < len_proc_table; i++)
+    {
+        fprintf(fproc, "%s %s %d %d %d\n",
+                proc_table[i].pname, proc_table[i].ptype,
+                proc_table[i].plev, proc_table[i].fadr, proc_table[i].ladr);
+    }
     return 0;
 }

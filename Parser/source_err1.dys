@@ -1,6 +1,6 @@
            begin  1
             EOLN 24
-         integer  3
+          intger 10
                k 10
                ; 23
             EOLN 24
@@ -63,8 +63,6 @@
            write  9
                ( 21
                k 10
-               ) 22
-            EOLN 24
              end  2
             EOLN 24
              EOF 25

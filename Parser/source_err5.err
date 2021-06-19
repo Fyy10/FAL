@@ -1,0 +1,5 @@
+***Line:2 expected "integer", got "intger"
+***Line:11 invalid exe statement "integer"
+***Line:12 variable "k" undefined
+***Line:13 variable "k" undefined
+***Line:13 no "end" after "begin"
