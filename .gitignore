@@ -33,3 +33,6 @@
 
 .idea
 .vscode
+
+# personal
+.DS_Store
