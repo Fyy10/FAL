@@ -20,5 +20,8 @@ parser: src/parser.y src/ast.hpp
 main: src/*.cpp src/*.hpp lexer parser
 	g++ src/*.cpp build/lexer.cpp build/parser.cpp -o build/main -Isrc -Ibuild $(LLVM_CONFIG)
 
+test: main
+	./build/main example.fa
+
 clean:
 	rm build/*
