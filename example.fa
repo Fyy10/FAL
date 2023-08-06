@@ -1,0 +1,10 @@
+extern void print_val(int val)
+
+int my_func(int a) {
+    int x = a * 5
+    return x + 3
+}
+
+echo(my_func(11))
+echo(my_func(12))
+print_val(10)
