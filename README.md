@@ -59,20 +59,26 @@ FA:male_sign: Language
 
 ### Code Example
 
+See `example.fa`:
+
 ```c
 extern void print_val(int val)
 
 int my_func(int a) {
+    a = a - 1
     int x = a * 5
-    return x + 3
+    return x + 2
 }
 
-echo(my_func(11))
-echo(my_func(12))
-print_val(10)
+int a = 11
+echo(my_func(a))        // 52
+echo(my_func(a + 10))   // 102
+print_val(10)           // 10
 ```
 
 ## Abstract Syntax Tree
+
+TODO
 
 ## Usage
 
